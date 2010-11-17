@@ -21,8 +21,7 @@ cl_device_type device_type;
 vector<cl_mem> deviceBuffers;
 vector<void*> hostBuffers;
 cl_device_id device;
-typedef pair<cl_kernel, unsigned> KernelToArg;
-typedef map<string, KernelToArg> NameToKernel;
+typedef map<string, cl_kernel> NameToKernel;
 NameToKernel nameToKernel;
 
 unsigned
@@ -136,7 +135,7 @@ cleanup()
    
     NameToKernel::const_iterator itr = nameToKernel.begin();
     for (; itr != nameToKernel.end(); ++itr) {
-        cl_kernel k = (*itr).second.first;
+        cl_kernel k = (*itr).second;
 	 	clReleaseKernel(k);
     }
 
@@ -342,8 +341,7 @@ createKernel(const string& kernelName)
     cl_int ciErrNum = CL_SUCCESS;
     cl_kernel k = clCreateKernel(cpProgram, kernelName.c_str(), &ciErrNum);
     checkError(ciErrNum, "clCreateKernel");
-    KernelToArg temp(k, 0);
-    nameToKernel[kernelName] = temp;
+    nameToKernel[kernelName] = k;
     assert(nameToKernel.find(kernelName) != nameToKernel.end());
     //nameToKernel.insert(kernelName, temp);
       
@@ -397,7 +395,10 @@ runKernel(const string& kernel, size_t localWorkSize,
 {
     NameToKernel::const_iterator itr = nameToKernel.find(kernel);
     assert(itr != nameToKernel.end());
-    cl_kernel k = (*itr).second.first;
+#ifdef DEBUG 
+    print(kernel, localWorkSize, globalWorkSize);
+#endif
+    cl_kernel k = (*itr).second;
     cl_event e;
     const cl_int ciErrNum = clEnqueueNDRangeKernel(commandQueue, 
                                                    k, // kernel 
@@ -411,13 +412,12 @@ runKernel(const string& kernel, size_t localWorkSize,
 }
 
 void
-setKernelArg(const string& kernel, const size_t argSize, const void* argVal)
+setKernelArg(const string& kernel, const unsigned argIndex,  
+             const size_t argSize, const void* argVal)
 {
     NameToKernel::iterator itr = nameToKernel.find(kernel);
     assert(itr != nameToKernel.end()); 
-    cl_kernel k = (*itr).second.first; 
-    const unsigned argIndex = (*itr).second.second;
-    (*itr).second.second = argIndex + 1; 
+    cl_kernel k = (*itr).second; 
     cl_int ciErrNum = clSetKernelArg(k, argIndex ,
                                      argSize, argVal);
     checkError(ciErrNum, "clSetKernelArg");
@@ -432,8 +432,8 @@ waitForEvent()
 }
 
 void
-print(const unsigned kernel, const size_t szLocalWorkSize, 
-                             const size_t szGlobalWorkSize)
+print(const string& kernel, const size_t szLocalWorkSize, 
+                            const size_t szGlobalWorkSize)
 {
     cout << "Kernel: " <<  kernel << endl
          << "Global Work Size " << szGlobalWorkSize << endl

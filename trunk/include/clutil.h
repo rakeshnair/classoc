@@ -1,7 +1,3 @@
-/*
-   File: clutil.h
- */
-
 #ifndef __CLUTIL__
 #define __CLUTIL__
 
@@ -16,7 +12,7 @@ using namespace std;
 
 unsigned initExecution();
 void waitForEvent();
-void print(const unsigned, const size_t, const size_t);
+void print(const string&, const size_t, const size_t);
 
 void checkError(const cl_int ciErrNum, const char* const operation);
 const char* oclErrorString(cl_int error);
@@ -31,7 +27,8 @@ cl_uint getDeviceCount();
 
 void createCommandQueue();
 void
-setKernelArg(const string& kernel, const size_t argSize, const void* argVal);
+setKernelArg(const string& kernel, const unsigned argIndex,
+             const size_t argSize, const void* argVal);
 
 
 void buildError();
