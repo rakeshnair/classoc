@@ -7,6 +7,7 @@
 int 
 main()
 {
-    gpuAssoc();
+    test(); 
+    //gpuAssoc();
 }
 
