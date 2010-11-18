@@ -5,6 +5,7 @@
 void
 gpuAssoc()
 {
+    fileRead();
     initExecution();
 
     // Assoc code goes ehre
