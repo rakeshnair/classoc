@@ -34,6 +34,7 @@ fileRead()
         } 
         ++nTranscations;
     }
+    ++nItems; // 0 is an item
     cout << "Market Basket File: "  << MARKET_BASKET_FILE << endl
          << "Transcations: " << nTranscations << endl
          << "Items: " << nItems << endl;
@@ -52,10 +53,7 @@ fileRead()
        unsigned item;
        while (!s.eof()) {
            s >> item;
-           assert(item);
-           marketBasket[((item - 1) * nTranscations) + tTrans] = 1;
-           if (((item - 1) * nTranscations) + tTrans == 236504)
-                          cout << item << " " << tTrans << endl;
+           marketBasket[(item * nTranscations) + tTrans] = 1;
        }
        ++tTrans;  
     }
@@ -64,8 +62,8 @@ fileRead()
     unsigned count = 0;
     cout << "test" << endl;
     for (unsigned i = 0; i < nTranscations; ++i ) {
-        if (marketBasket[71 * nTranscations + i] == 1) {
-            cout << i + 1 << endl; 
+        if (marketBasket[7115 * nTranscations + i] == 1) {
+        //    cout << i + 1 << endl; 
             ++count;
         }
     }
