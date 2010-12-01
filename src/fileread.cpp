@@ -19,7 +19,7 @@ fileRead(const char* file)
     ifstream fp;
     fp.open(file, ios::in);
     if (!fp.is_open()) {
-        cout <<  "Not Able to Open file " << MARKET_BASKET_FILE << endl;
+        cout <<  "Not Able to Open file " << file << endl;
         exit(0);
     }
     while(!fp.eof()) {
@@ -36,7 +36,7 @@ fileRead(const char* file)
         ++nTransactions;
     }
     ++nItems; // 0 is an item
-    cout << "Market Basket File: "  << MARKET_BASKET_FILE << endl
+    cout << "Market Basket File: "  << file << endl
          << "Transcations: " << nTransactions << endl
          << "Items: " << nItems << endl;
 
