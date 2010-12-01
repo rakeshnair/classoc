@@ -16,7 +16,7 @@ gpuAssoc(const char* file)
     cl_mem dMarketBasket = allocateDeviceMemory(marketBasket, marketBasketSize,
                                                 CL_MEM_READ_ONLY);
     cl_mem dCount = allocateDeviceMemory(count, nItems * sizeof(int),
-                                                CL_MEM_WRITE_ONLY);
+                                               CL_MEM_WRITE_ONLY);
     compileProgram(0, "kernel.cl");
     createKernel("itemCount");
     setKernelArg("itemCount", 0, sizeof(cl_mem), &dMarketBasket); 
@@ -38,7 +38,7 @@ gpuAssoc(const char* file)
 
     waitForEvent();
     copyFromDevice(dCount, count, nItems * sizeof(int));
-
+    
 
     // Assoc code goes ehre
 
@@ -59,11 +59,11 @@ verifyCount(int * count)
 			}
 		}
         if (countI != count[k]) {
-           cout << "**********ERROR in item " << k <<  endl;
+           cout << "**********ERROR in item " << k <<  endl << endl;;
            return;
         } 
 	}
-    cout << "Verified" << endl;
+    cout << "Verified" << endl << endl;
 }
 
 void
