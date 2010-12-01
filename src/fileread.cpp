@@ -5,18 +5,19 @@
 #include<vector>
 #include<assoc.h>
 #include<assert.h>
+#include<clutil.h>
 using namespace std;
 
 bool* marketBasket;
-unsigned nTranscations = 0;
+unsigned nTransactions = 0;
 unsigned nItems = 0;
 
 
 void
-fileRead()
+fileRead(const char* file)
 {
     ifstream fp;
-    fp.open(MARKET_BASKET_FILE, ios::in);
+    fp.open(file, ios::in);
     if (!fp.is_open()) {
         cout <<  "Not Able to Open file " << MARKET_BASKET_FILE << endl;
         exit(0);
@@ -32,17 +33,17 @@ fileRead()
             if (item > nItems) nItems = item;
             //if (s.eof()) break;
         } 
-        ++nTranscations;
+        ++nTransactions;
     }
     ++nItems; // 0 is an item
     cout << "Market Basket File: "  << MARKET_BASKET_FILE << endl
-         << "Transcations: " << nTranscations << endl
+         << "Transcations: " << nTransactions << endl
          << "Items: " << nItems << endl;
 
     fp.close();
     fp.open(MARKET_BASKET_FILE, ios::in); 
 
-    bool* marketBasket = (bool*)malloc(sizeof(bool) * nItems * nTranscations);
+    marketBasket = (bool*)allocateHostMemory(sizeof(bool) * nItems * nTransactions);
     
     unsigned tTrans = 0;
     while(!fp.eof()) {
@@ -53,22 +54,10 @@ fileRead()
        unsigned item;
        while (!s.eof()) {
            s >> item;
-           marketBasket[(item * nTranscations) + tTrans] = 1;
+           marketBasket[(item * nTransactions) + tTrans] = 1;
        }
        ++tTrans;  
     }
 
-#if 0
-    unsigned count = 0;
-    cout << "test" << endl;
-    for (unsigned i = 0; i < nTranscations; ++i ) {
-        if (marketBasket[7115 * nTranscations + i] == 1) {
-        //    cout << i + 1 << endl; 
-            ++count;
-        }
-    }
-    cout << count << endl;
-#endif
-        
     fp.close();
 }

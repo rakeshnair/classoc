@@ -1,22 +1,70 @@
 #include<assoc.h>
 #include<clutil.h>
+#include<assert.h>
 
 
 void
-gpuAssoc()
+gpuAssoc(const char* file)
 {
-    fileRead();
+    fileRead(file);
     initExecution();
+    int* count = (int*)allocateHostMemory(nItems * sizeof(int));
+    for (unsigned i = 0; i < nItems; ++i) {
+        count[i] = 0;
+    }
+    const int marketBasketSize = sizeof(bool) * nItems * nTransactions;
+    cl_mem dMarketBasket = allocateDeviceMemory(marketBasket, marketBasketSize,
+                                                CL_MEM_READ_ONLY);
+    cl_mem dCount = allocateDeviceMemory(count, nItems * sizeof(int),
+                                                CL_MEM_WRITE_ONLY);
+    compileProgram(0, "kernel.cl");
+    createKernel("itemCount");
+    setKernelArg("itemCount", 0, sizeof(cl_mem), &dMarketBasket); 
+    setKernelArg("itemCount", 1, sizeof(cl_mem), &dCount); 
+    setKernelArg("itemCount", 2, sizeof(unsigned), (void*)&nTransactions); 
+    setKernelArg("itemCount", 3, sizeof(unsigned), (void*)&nItems); 
+
+    size_t szLocalWorkSize = NO_THREADS_BLOCK;
+    size_t szGlobalWorkSize;
+    if (nItems % 256 == 0) { 
+        szGlobalWorkSize = nItems;
+    } else {
+        szGlobalWorkSize = 256 * ((nItems / 256) + 1);
+
+    }
+    
+    runKernel("itemCount", szLocalWorkSize, szGlobalWorkSize);
+
+
+    waitForEvent();
+    copyFromDevice(dCount, count, nItems * sizeof(int));
+
 
     // Assoc code goes ehre
 
-
     printGpuTime();
+    verifyCount(count);
     cleanup();
 }
 
-
-
+void 
+verifyCount(int * count)
+{
+	for (unsigned k = 0; k < nItems; ++k) {
+        unsigned countI = 0;
+		for (unsigned i = 0; i < nTransactions; ++i ) {
+			if (marketBasket[k * nTransactions + i] == 1) {
+				//    cout << i + 1 << endl;
+				++countI;
+			}
+		}
+        if (countI != count[k]) {
+           cout << "**********ERROR in item " << k <<  endl;
+           return;
+        } 
+	}
+    cout << "Verified" << endl;
+}
 
 void
 test()
