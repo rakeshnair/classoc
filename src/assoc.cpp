@@ -18,11 +18,12 @@ gpuAssoc(const char* file)
     cl_mem dCount = allocateDeviceMemory(count, nItems * sizeof(int),
                                                CL_MEM_WRITE_ONLY);
     compileProgram(0, "kernel.cl");
-    createKernel("itemCount");
-    setKernelArg("itemCount", 0, sizeof(cl_mem), &dMarketBasket); 
-    setKernelArg("itemCount", 1, sizeof(cl_mem), &dCount); 
-    setKernelArg("itemCount", 2, sizeof(unsigned), (void*)&nTransactions); 
-    setKernelArg("itemCount", 3, sizeof(unsigned), (void*)&nItems); 
+#if 1
+    createKernel("itemCount1");
+    setKernelArg("itemCount1", 0, sizeof(cl_mem), &dMarketBasket); 
+    setKernelArg("itemCount1", 1, sizeof(cl_mem), &dCount); 
+    setKernelArg("itemCount1", 2, sizeof(unsigned), (void*)&nTransactions); 
+    setKernelArg("itemCount1", 3, sizeof(unsigned), (void*)&nItems); 
 
     size_t szLocalWorkSize = NO_THREADS_BLOCK;
     size_t szGlobalWorkSize;
@@ -33,14 +34,24 @@ gpuAssoc(const char* file)
 
     }
     
-    runKernel("itemCount", szLocalWorkSize, szGlobalWorkSize);
+    runKernel("itemCount1", szLocalWorkSize, szGlobalWorkSize);
+#endif
+#if 0
+    createKernel("itemCount2");
+    setKernelArg("itemCount2", 0, sizeof(cl_mem), &dMarketBasket);
+    setKernelArg("itemCount2", 1, sizeof(cl_mem), &dCount);
+    setKernelArg("itemCount2", 2, sizeof(int), 0);
+    setKernelArg("itemCount2", 3, sizeof(unsigned), (void*)&nTransactions);
+    setKernelArg("itemCount2", 4, sizeof(unsigned), (void*)&nItems);
 
+    size_t szLocalWorkSize = NO_THREADS_BLOCK;  
+    size_t szGlobalWorkSize = nItems * NO_THREADS_BLOCK; 
 
+    runKernel("itemCount2", szLocalWorkSize, szGlobalWorkSize); 
+#endif
     waitForEvent();
     copyFromDevice(dCount, count, nItems * sizeof(int));
-    
 
-    // Assoc code goes ehre
 
     printGpuTime();
     verifyCount(count);
@@ -60,6 +71,7 @@ verifyCount(int * count)
 		}
         if (countI != count[k]) {
            cout << "**********ERROR in item " << k <<  endl << endl;;
+           cout << "Actual: "  << countI << "Result: " << count[k] << endl;
            return;
         } 
 	}
