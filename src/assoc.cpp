@@ -18,7 +18,7 @@ gpuAssoc(const char* file)
     cl_mem dCount = allocateDeviceMemory(count, nItems * sizeof(int),
                                                CL_MEM_WRITE_ONLY);
     compileProgram(0, "kernel.cl");
-#if 1
+#if 0
     createKernel("itemCount1");
     setKernelArg("itemCount1", 0, sizeof(cl_mem), &dMarketBasket); 
     setKernelArg("itemCount1", 1, sizeof(cl_mem), &dCount); 
@@ -36,7 +36,7 @@ gpuAssoc(const char* file)
     
     runKernel("itemCount1", szLocalWorkSize, szGlobalWorkSize);
 #endif
-#if 0
+#if 1
     createKernel("itemCount2");
     setKernelArg("itemCount2", 0, sizeof(cl_mem), &dMarketBasket);
     setKernelArg("itemCount2", 1, sizeof(cl_mem), &dCount);
