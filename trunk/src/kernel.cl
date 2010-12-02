@@ -59,5 +59,7 @@ itemCount2(__global const char* const dMarketBasket,
     }
     atom_add(sCount, count);        
     barrier(CLK_LOCAL_MEM_FENCE);  
-    dCount[item] = *sCount;
+    if (tx == 0) {
+        dCount[item] = *sCount;
+    }
 }
