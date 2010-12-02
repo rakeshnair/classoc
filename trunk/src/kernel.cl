@@ -42,15 +42,20 @@ itemCount2(__global const char* const dMarketBasket,
     const size_t tx = get_local_id(0);
     const unsigned item = bx;
     const unsigned transPerThread = nTransactions / 256 + 1;
-    const unsigned startIndex = (item * nTransactions) + (tx * transPerThread); 
+    //const unsigned startIndex = (item * nTransactions) + (tx * transPerThread); 
+    const unsigned startIndex = (item * nTransactions) ; 
     const unsigned maxIndex = (bx + 1) * nTransactions;
     *sCount = 0;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     int count = 0; 
     for (unsigned i = 0; i < transPerThread; ++i) {
-        if ((startIndex + i) >=  maxIndex) break; 
-        count += dMarketBasket[startIndex + i];
+        //if (startIndex + i >= maxIndex) break;
+        //count += dMarketBasket[startIndex + i]; 
+        // coalesced access
+        const unsigned index = startIndex + (i * 256) + tx;
+        if (index >=  maxIndex) break; 
+        count += dMarketBasket[index];
     }
     atom_add(sCount, count);        
     barrier(CLK_LOCAL_MEM_FENCE);  
