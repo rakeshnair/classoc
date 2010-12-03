@@ -427,6 +427,7 @@ setKernelArg(const string& kernel, const unsigned argIndex,
 void 
 waitForEvent()
 {
+    if (gpuExecution.size() == 0) return;
     cl_int ciErrNum = clWaitForEvents(1, &gpuExecution[gpuExecution.size() - 1]);
     checkError(ciErrNum, "clWaitForEvents");
 }

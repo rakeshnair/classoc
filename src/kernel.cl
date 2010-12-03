@@ -1,4 +1,5 @@
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics: enable
+#pragma OPENCL EXTENSION cl_amd_printf : enable
 
 __kernel void
 vecAdd(__global const int* const a,
@@ -63,3 +64,47 @@ itemCount2(__global const char* const dMarketBasket,
         dCount[item] = *sCount;
     }
 }
+
+// kernel using bitmap
+__kernel void
+itemCount3(__global const uint* const dMarketBasketBitmap,
+           __global int* const dCount, __constant uchar* dBitLookup,
+           __local int* sCount, const unsigned nIntegers,
+           const unsigned nItems)
+{
+    const size_t bx = get_group_id(0);
+    const size_t tx = get_local_id(0);
+    const unsigned item = bx;
+    *sCount = 0;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    const unsigned dataPerThread = nIntegers / 256 + 1;
+    const unsigned startIndex = (item * nIntegers);
+    const unsigned maxIndex = (bx + 1) * nIntegers;
+    uint count = 0;
+    for (unsigned i = 0; i < dataPerThread; ++i) { 
+       const unsigned index = startIndex + (i * 256) + tx; 
+       if (index >= maxIndex) break; 
+       const uint val = (dMarketBasketBitmap[index]);
+       const ushort upval = (val & 0xffff0000) >> 16;
+       const ushort lowval = val & 0x0000ffff;
+       count += (uint)dBitLookup[upval] + (uint)dBitLookup[lowval];
+    }
+    atom_add(sCount, count); 
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (tx == 0) {
+        dCount[item] = *sCount;
+    }
+}
+
+__kernel void
+testbit(__global uint* dBuff)
+{
+    const size_t tx = get_local_id(0);
+    ushort2  a = dBuff[tx];
+    const uint upval = (a.x & 0xff00) >> 8;
+    const uint lowval = a.y & 0x00ff;
+    //printf("hello\n"); 
+    printf("%d %u %u\n", tx, upval, lowval); 
+
+}
+
