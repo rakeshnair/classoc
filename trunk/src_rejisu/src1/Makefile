@@ -40,16 +40,16 @@ CXXWARN_FLAGS := \
     $(SPACE)
 
 LIB += -lOpenCL
-INCLUDES += -I../include/
-
-OBJFILES := $(patsubst %.cpp,%.o, $(wildcard *.cpp))
+INCLUDES += -I../../include/
+CPPFILES = assoc.cpp  clutil.cpp  fileread.cpp  main.cpp
+OBJFILES := $(patsubst %.cpp,%.o, $(CPPFILES))
 HFILES := $(wildcard *.h)
 
 assoc: $(OBJFILES)
-	@g++ $(CXXFLAGS) $(CFLAGS)  -o $@ $(OBJFILES)  $(INCLUDES) $(LIB)
+	g++ $(CXXFLAGS) $(CFLAGS)  -o $@ $(OBJFILES)  $(INCLUDES) $(LIB)
 
 %.o: %.cpp $(HFILES)
-	@g++ $(CXXFLAGS) $(CFLAGS)  -c -o $@ $< $(INCLUDES)
+	g++ $(CXXFLAGS) $(CFLAGS)  -c -o $@ $< $(INCLUDES)
 
 all:classoc
 

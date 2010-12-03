@@ -4,6 +4,7 @@
 #define MARKET_BASKET_FILE "../test/chess.dat"
 #define NO_THREADS_BLOCK 256
 #define SIZE  1048576
+#define NO_DIV_PRIME 4
 
 void fileRead(const char* file);
 void fileReadBitmap(const char* file);
