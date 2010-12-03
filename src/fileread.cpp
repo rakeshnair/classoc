@@ -50,7 +50,6 @@ fileRead(const char* file)
     fp.open(MARKET_BASKET_FILE, ios::in); 
 
     marketBasket = (bool*)allocateHostMemory(sizeof(bool) * nItems * nTransactions);
-    
     unsigned tTrans = 0;
     while(!fp.eof()) {
        string line;
@@ -64,7 +63,6 @@ fileRead(const char* file)
        }
        ++tTrans;  
     }
-   
     fp.close();
 }
 
@@ -107,21 +105,28 @@ fileReadBitmap(const char* file)
     marketBasketBitmap = (unsigned*)allocateHostMemory(sizeof(int) * nIntegers *
                                                          nItems);
     memset(marketBasketBitmap, 0, sizeof(int) * nIntegers * nItems);
+    unsigned maxitem = 0;
     unsigned tTrans = 0;
     while(!fp.eof()) {
        string line;
        getline(fp, line);
        if (line[0] == '\0') break;
        stringstream s(line);
+       unsigned titem = 0;
        unsigned item;
        while (!s.eof()) {
            s >> item;
            bitset<32> bTrans(marketBasketBitmap[(item * nIntegers) + tTrans / 32]); 
            bTrans.set(tTrans % 32, 1);
            marketBasketBitmap[(item * nIntegers) + tTrans / 32] = bTrans.to_ulong();
+           ++titem;
+       }
+       if (maxitem < titem) {
+          maxitem = titem;
        }
        ++tTrans;
     }
+    cout << "Max Items in a transaction: " << maxitem <<  endl;
 #if 0
      unsigned countI = 0;
 		for (unsigned i = 0; i < nIntegers; ++i ) {
