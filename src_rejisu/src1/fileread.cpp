@@ -5,11 +5,13 @@
 #include<vector>
 #include<assoc.h>
 #include<assert.h>
+#include"primes.h"
 using namespace std;
 
 bool* marketBasket;
 unsigned nTranscations = 0;
 unsigned nItems = 0;
+unsigned long *gTransactions;
 
 
 void
@@ -42,20 +44,35 @@ fileRead()
     fp.close();
     fp.open(MARKET_BASKET_FILE, ios::in); 
 
-    bool* marketBasket = (bool*)malloc(sizeof(bool) * nItems * nTranscations);
+     marketBasket = (bool*)malloc(sizeof(bool) * nItems * nTranscations);
+	 gTransactions = (unsigned long*)malloc(sizeof(long) * nTranscations* NO_DIV_PRIME);
+	 for(int i =0 ; i< nTranscations* NO_DIV_PRIME ; ++i)
+		 gTransactions[i]=1;
     
     unsigned tTrans = 0;
-    while(!fp.eof()) {
-       string line;
-       getline(fp, line); 
-       if (line[0] == '\0') break;
-       stringstream s(line);
-       unsigned item;
-       while (!s.eof()) {
-           s >> item;
-           marketBasket[(item * nTranscations) + tTrans] = 1;
-       }
-       ++tTrans;  
+	int lPart =  nItems/NO_DIV_PRIME;
+    while(!fp.eof())
+   	{
+		string line;
+		getline(fp, line); 
+		if (line[0] == '\0') break;
+		stringstream s(line);
+		unsigned item;
+		while (!s.eof())
+		{
+			s >> item;
+			marketBasket[(item * nTranscations) + tTrans] = 1;
+			int lLocation  = item/lPart;
+			unsigned long lTemp =   gTransactions[NO_DIV_PRIME *tTrans +lLocation];
+			gTransactions[NO_DIV_PRIME *tTrans +lLocation] = gTransactions[ NO_DIV_PRIME * tTrans + lLocation] * primes[item% lPart];
+			if(lTemp >gTransactions[NO_DIV_PRIME *tTrans     +lLocation])
+				cout<<"REJISUUUU\n";
+
+
+
+		}
+		// cout<< gTransactions[tTrans] << "Value"<<endl;
+		++tTrans;  
     }
 
 #if 0
