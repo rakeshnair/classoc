@@ -15,6 +15,9 @@ void verifyCount(int * count);
 void verifyBitmapCount(int * count);
 void verifyItemSet(bool* count, const unsigned e);
 void createTwoItemSet(const int* count);
+void createItemBitmap();
+bool generateKItemSet(const bool* count);
+
 
 typedef unsigned char uchar;
 extern uchar* bitLookup; 

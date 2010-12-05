@@ -83,7 +83,7 @@ executionTime()
 /* size in bytes*/
 cl_mem
 allocateDeviceMemory(void* buffer, const unsigned size, 
-                     cl_mem_flags flags)
+                     cl_mem_flags flags, const bool autoFree)
                                       
 {
     cl_int ciErrNum = CL_SUCCESS;
@@ -93,7 +93,8 @@ allocateDeviceMemory(void* buffer, const unsigned size,
                                   0,
                                   &ciErrNum);
     checkError(ciErrNum, "clCreateBuffer");
-    deviceBuffers.push_back(dBuffer);
+    if (autoFree)
+       deviceBuffers.push_back(dBuffer);
 
     if (buffer) {
     	copyToDevice(dBuffer, buffer, size);

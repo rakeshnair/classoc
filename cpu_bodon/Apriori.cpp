@@ -90,7 +90,6 @@ void Apriori::APRIORI_alg( const double min_supp,
 //   apriori_trie->show_content();
 //   getchar();
    candidate_size++;
-   if(!quiet) 
    {
       cout<<endl<<"Genarating "<<candidate_size;
       cout<<"-itemset candidates!"<<endl;
@@ -120,7 +119,6 @@ void Apriori::APRIORI_alg( const double min_supp,
 	 break;
       }
       candidate_size++;
-      if( !quiet )
       {
 	 cout<<endl<<"Genarating "<<candidate_size;
 	 cout<<"-itemset candidates!"<<endl;

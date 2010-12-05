@@ -54,7 +54,7 @@ void copyFromDevice(const cl_mem dMem,
                     void* hostPtr, const unsigned size);
 
 double executionTime();
-cl_mem allocateDeviceMemory(void* buffer, const unsigned size, cl_mem_flags);
+cl_mem allocateDeviceMemory(void* buffer, const unsigned size, cl_mem_flags, const bool autoFree = true);
 
 void freeDeviceBuffer(cl_mem);
 
