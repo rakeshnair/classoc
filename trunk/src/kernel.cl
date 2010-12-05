@@ -154,7 +154,7 @@ countKItem(__global unsigned* dItemBitmap,
          count += (uint)dCount[index]; 
     } 
     if (count)
-       atomic_add(sCount, count);
+       atom_add(sCount, count);
     barrier(CLK_LOCAL_MEM_FENCE);
     if (tx == 0) {
        atom_add(dNEntries, *sCount - 1);
