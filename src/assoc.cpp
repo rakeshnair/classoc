@@ -8,6 +8,7 @@ unsigned* itemBitmap = 0;
 unsigned nItemIntegers = 0;
 unsigned nEntries = 0;
 unsigned itemset = 1;
+const unsigned maxBlocks = 16384;
 
 void
 gpuAssoc(const char* file)
@@ -117,15 +118,19 @@ gpuAssocBitmap(const char* file)
         dCount = allocateDeviceMemory(count, nEntries * sizeof(bool),
                                                      CL_MEM_WRITE_ONLY, false);
 
-       
+        unsigned workPerBlock = 1;  
         size_t szLocalWorkSize = NO_THREADS_BLOCK;
-		size_t szGlobalWorkSize = nEntries * NO_THREADS_BLOCK; 
+        if (nEntries > maxBlocks){
+           workPerBlock = nEntries / maxBlocks + 1;
+        }
+		size_t szGlobalWorkSize = (nEntries / workPerBlock) * NO_THREADS_BLOCK; 
 		setKernelArg("countKTransaction", 0, sizeof(cl_mem), &dMarketBasketBitmap);
 		setKernelArg("countKTransaction", 1, sizeof(cl_mem), &dCount);
 		setKernelArg("countKTransaction", 2, sizeof(cl_mem), &dBitLookup);
 		setKernelArg("countKTransaction", 3, sizeof(int), 0);
 		setKernelArg("countKTransaction", 4, sizeof(unsigned), (void*)&nIntegers);
 		setKernelArg("countKTransaction", 5, sizeof(unsigned), (void*)&supportValue);
+		setKernelArg("countKTransaction", 6, sizeof(unsigned), (void*)&workPerBlock);
 
 		runKernel("countKTransaction", szLocalWorkSize, szGlobalWorkSize);
 		waitForEvent(); 
@@ -203,11 +208,11 @@ generateKItemSet(const bool* count)
                 {
                    ++diff;
                    kDiff = kDiff & (kDiff - 1); 
-                   if (diff > 1) break;
+                   if (diff > 2) break;
                 }
-                if (diff > 1) break; 
+                if (diff > 2) break; 
             }
-            if (diff > 1) continue;
+            if (diff > 2) continue;
             ++cEntries; 
         }
     }
@@ -235,12 +240,12 @@ generateKItemSet(const bool* count)
 					{
 						++diff;
 						kDiff = kDiff & (kDiff - 1);
-                        if (diff > 1) break;
+                        if (diff > 2) break;
 					}
-					if (diff > 1) break;
+					if (diff > 2) break;
 				}
 			}
-			if (diff > 1) continue;
+			if (diff > 2) continue;
 			for (unsigned p = 0; p < nItemIntegers; ++p) {
 				iBitmap[index * nItemIntegers + p] =  
 					itemBitmap[i * nItemIntegers + p] |

@@ -103,31 +103,40 @@ countKTransaction(__global const uint* const dMarketBasketBitmap,
            __global uchar* const dCount,
            __constant uchar* dBitLookup,
            __local int* sCount,
-           const unsigned nIntegers, const unsigned supportValue) 
+           const unsigned nIntegers, const unsigned supportValue,
+           const unsigned workPerBlock) 
 {
 	const size_t bx = get_group_id(0);
 	const size_t tx = get_local_id(0);
-	const unsigned item = bx;
-	*sCount = 0;
-	barrier(CLK_LOCAL_MEM_FENCE);
+	const unsigned startItem = bx * workPerBlock;
 	const unsigned dataPerThread = nIntegers / 256 + 1;
-	const unsigned startIndex = (item * nIntegers);
-	const unsigned maxIndex = (bx + 1) * nIntegers;
-	uint count = 0;
-	for (unsigned i = 0; i < dataPerThread; ++i) {
-		const unsigned index = startIndex + (i * 256) + tx;
-		if (index >= maxIndex) break;
-		const uint val = (dMarketBasketBitmap[index]);
-		const ushort upval = (val & 0xffff0000) >> 16;
-		const ushort lowval = val & 0x0000ffff;
-		count += (uint)dBitLookup[upval] + (uint)dBitLookup[lowval];
-	}
-	atom_add(sCount, count);
+    if (tx == 0) {
+	   *sCount = 0;
+    }
 	barrier(CLK_LOCAL_MEM_FENCE);
-	if (tx == 0) {
-        if (*sCount > supportValue) { 
-		    dCount[item] = 1;
-        }
+
+	for (unsigned k = 0; k < workPerBlock; ++k) {
+		const unsigned startIndex = ((startItem + k) * nIntegers);
+		const unsigned maxIndex = (startItem + k + 1) * nIntegers;
+		uint count = 0;
+		for (unsigned i = 0; i < dataPerThread; ++i) {
+			const unsigned index = startIndex + (i * 256) + tx;
+			if (index >= maxIndex) break;
+			const uint val = (dMarketBasketBitmap[index]);
+			const ushort upval = (val & 0xffff0000) >> 16;
+			const ushort lowval = val & 0x0000ffff;
+			count += (uint)dBitLookup[upval] + (uint)dBitLookup[lowval];
+		}
+        if (count)
+		   atom_add(sCount, count);
+		barrier(CLK_LOCAL_MEM_FENCE);
+		if (tx == 0) {
+			if (*sCount > supportValue) { 
+				dCount[startItem + k] = 1;
+			}
+            *sCount = 0;
+		}
+        barrier(CLK_LOCAL_MEM_FENCE);
 	}
 }
 
