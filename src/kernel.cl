@@ -114,7 +114,6 @@ countKTransaction(__global const uint* const dMarketBasketBitmap,
 	   *sCount = 0;
     }
 	barrier(CLK_LOCAL_MEM_FENCE);
-
 	for (unsigned k = 0; k < workPerBlock; ++k) {
 		const unsigned startIndex = ((startItem + k) * nIntegers);
 		const unsigned maxIndex = (startItem + k + 1) * nIntegers;
@@ -136,6 +135,7 @@ countKTransaction(__global const uint* const dMarketBasketBitmap,
 			}
             *sCount = 0;
 		}
+         
         barrier(CLK_LOCAL_MEM_FENCE);
 	}
 }
