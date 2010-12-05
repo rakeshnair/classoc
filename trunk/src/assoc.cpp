@@ -3,7 +3,7 @@
 #include<assert.h>
 #include<bitset>
 #include<string.h>
-const unsigned supportValue = 100;
+const unsigned supportValue = 1000;
 unsigned* itemBitmap = 0;
 unsigned nItemIntegers = 0;
 unsigned nEntries = 0;
@@ -123,6 +123,7 @@ gpuAssocBitmap(const char* file)
         if (nEntries > maxBlocks){
            workPerBlock = nEntries / maxBlocks + 1;
         }
+        
 		size_t szGlobalWorkSize = (nEntries / workPerBlock) * NO_THREADS_BLOCK; 
 		setKernelArg("countKTransaction", 0, sizeof(cl_mem), &dMarketBasketBitmap);
 		setKernelArg("countKTransaction", 1, sizeof(cl_mem), &dCount);
@@ -131,7 +132,7 @@ gpuAssocBitmap(const char* file)
 		setKernelArg("countKTransaction", 4, sizeof(unsigned), (void*)&nIntegers);
 		setKernelArg("countKTransaction", 5, sizeof(unsigned), (void*)&supportValue);
 		setKernelArg("countKTransaction", 6, sizeof(unsigned), (void*)&workPerBlock);
-
+        cout << "Running kernel"<< endl;
 		runKernel("countKTransaction", szLocalWorkSize, szGlobalWorkSize);
 		waitForEvent(); 
         copyFromDevice(dCount, count, nEntries * sizeof(bool));
@@ -184,15 +185,6 @@ createItemBitmap()
 bool
 generateKItemSet(const bool* count)
 {
-	for (unsigned i = 0; i < nEntries; ++i) {
-		unsigned count = 0;
-		for (unsigned j = 0; j < nItemIntegers; ++j) {
-			bitset<32> bits(itemBitmap[i * nItemIntegers + j]);
-			count += bits.count();
-		}
-		assert(count == itemset);
-	}
-
     unsigned cEntries = 0;
     for (unsigned i = 0; i < nEntries; ++i) {
         if (count[i] == 0) continue;
@@ -208,11 +200,10 @@ generateKItemSet(const bool* count)
                 {
                    ++diff;
                    kDiff = kDiff & (kDiff - 1); 
-                   if (diff > 2) break;
                 }
-                if (diff > 2) break; 
+                if (diff != 2) break; 
             }
-            if (diff > 2) continue;
+            if (diff != 2) continue;
             ++cEntries; 
         }
     }
@@ -240,12 +231,11 @@ generateKItemSet(const bool* count)
 					{
 						++diff;
 						kDiff = kDiff & (kDiff - 1);
-                        if (diff > 2) break;
 					}
-					if (diff > 2) break;
+					if (diff != 2) break;
 				}
+                if (diff != 2) continue;
 			}
-			if (diff > 2) continue;
 			for (unsigned p = 0; p < nItemIntegers; ++p) {
 				iBitmap[index * nItemIntegers + p] =  
 					itemBitmap[i * nItemIntegers + p] |
@@ -260,12 +250,24 @@ generateKItemSet(const bool* count)
 			++index;
 		}
 	}
+
     assert(index == cEntries);
+	
+
+
     free(marketBasketBitmap);
     free(itemBitmap);
     marketBasketBitmap = tBitmap;
     itemBitmap = iBitmap;  
     nEntries = cEntries; 
+    for (unsigned i = 0; i < nEntries; ++i) {
+		unsigned count = 0;
+		for (unsigned j = 0; j < nItemIntegers; ++j) {
+			bitset<32> bits(itemBitmap[i * nItemIntegers + j]);
+			count += bits.count();
+		}
+		assert(count == (itemset + 1));
+	}
     return true;
 }
 
