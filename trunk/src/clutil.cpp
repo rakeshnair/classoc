@@ -58,7 +58,7 @@ printGpuTime()
 {
     cout << "Kernel execution Time on " 
          << ((device_type == CL_DEVICE_TYPE_GPU ) ? "GPU" : "CPU")
-         << " : " << executionTime() << " ms" << endl;
+         << " : " << executionTime() << " ms" << endl << endl;
 }
 
 
@@ -109,6 +109,14 @@ allocateHostMemory(const unsigned size)
     memset(p, 0, size);
     hostBuffers.push_back(p);
     return p;
+}
+
+void
+freeDeviceBuffer(cl_mem db)
+{
+	if (db) {
+		clReleaseMemObject(db);
+	}
 }
 
 

@@ -47,7 +47,7 @@ fileRead(const char* file)
          << "Items: " << nItems << endl;
 
     fp.close();
-    fp.open(MARKET_BASKET_FILE, ios::in); 
+    fp.open(file, ios::in); 
 
     marketBasket = (bool*)allocateHostMemory(sizeof(bool) * nItems * nTransactions);
     unsigned tTrans = 0;
@@ -95,7 +95,7 @@ fileReadBitmap(const char* file)
          << "Items: " << nItems << endl;
 
     fp.close();
-    fp.open(MARKET_BASKET_FILE, ios::in);
+    fp.open(file, ios::in);
     if (nTransactions % 32) {
         nIntegers = (nTransactions / 32) + 1;
     } else {

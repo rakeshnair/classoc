@@ -2,6 +2,11 @@
 #include<clutil.h>
 #include<assert.h>
 #include<bitset>
+#include<string.h>
+const unsigned supportValue = 1000;
+unsigned* itemsetBitmap = 0;
+unsigned nItemIntegers = 0;
+unsigned nEntries = 0;
 
 
 void
@@ -37,7 +42,7 @@ gpuAssoc(const char* file)
     
     runKernel("itemCount1", szLocalWorkSize, szGlobalWorkSize);
 #endif
-#if 0
+#if 1
     createKernel("itemCount2");
     setKernelArg("itemCount2", 0, sizeof(cl_mem), &dMarketBasket);
     setKernelArg("itemCount2", 1, sizeof(cl_mem), &dCount);
@@ -50,7 +55,7 @@ gpuAssoc(const char* file)
 
     runKernel("itemCount2", szLocalWorkSize, szGlobalWorkSize); 
 #endif
-#if 1 
+#if 0 
     unsigned* buff = (unsigned*)allocateHostMemory(sizeof(unsigned) * 256);
     for (unsigned i = 0; i < 256; ++i) {
         buff[i] = 255;
@@ -79,39 +84,113 @@ gpuAssocBitmap(const char* file)
 {
     fileReadBitmap(file);
     initExecution();
-    int* count = (int*)allocateHostMemory(nItems * sizeof(int));
-    for (unsigned i = 0; i < nItems; ++i) {
-        count[i] = 0;
-    }
-    const int marketBasketSize = sizeof(unsigned) * nItems * nIntegers;
-    cl_mem dMarketBasketBitmap = allocateDeviceMemory(marketBasketBitmap, 
-                                                 marketBasketSize,
-                                                CL_MEM_READ_ONLY);
-    cl_mem dCount = allocateDeviceMemory(count, nItems * sizeof(int),
-                                               CL_MEM_WRITE_ONLY);
-
-    cl_mem dBitLookup = allocateDeviceMemory(bitLookup, sizeof(uchar) * 65536,
-                                             CL_MEM_READ_ONLY);
     compileProgram(0, "kernel.cl");
-    createKernel("itemCount3");
-    setKernelArg("itemCount3", 0, sizeof(cl_mem), &dMarketBasketBitmap);
-    setKernelArg("itemCount3", 1, sizeof(cl_mem), &dCount);
-    setKernelArg("itemCount3", 2, sizeof(cl_mem), &dBitLookup);
-    setKernelArg("itemCount3", 3, sizeof(int), 0);
-    setKernelArg("itemCount3", 4, sizeof(unsigned), (void*)&nIntegers);
-    setKernelArg("itemCount3", 5, sizeof(unsigned), (void*)&nItems);
 
-    size_t szLocalWorkSize = NO_THREADS_BLOCK;
-    size_t szGlobalWorkSize = nItems * NO_THREADS_BLOCK;
 
-    runKernel("itemCount3", szLocalWorkSize, szGlobalWorkSize);
-    waitForEvent();
-    copyFromDevice(dCount, count, nItems * sizeof(int));
+    nEntries = nItems;
+    cl_mem dBitLookup = allocateDeviceMemory(bitLookup, sizeof(uchar) * 65536,
+                                                CL_MEM_READ_ONLY);
+
+    bool* count = 0;
+    cl_mem dMarketBasketBitmap;
+    cl_mem dCount; 
+    createKernel("countKTransaction");
+
+    cl_mem dItemBitmap;
+    unsigned zero = 0;
+    cl_mem dNEntries = allocateDeviceMemory(&zero, sizeof(unsigned),
+                                           CL_MEM_READ_WRITE);
+    createKernel("countKItem");
+
+	while(1)
+	{
+		count = (bool*)allocateHostMemory(nEntries * sizeof(bool));  
+		memset(count, 0, nEntries * sizeof(bool));
+        const int marketBasketSize = sizeof(unsigned) * nEntries * nIntegers;
+        dMarketBasketBitmap = allocateDeviceMemory(marketBasketBitmap,
+                                                          marketBasketSize,
+                                                          CL_MEM_READ_ONLY);
+        dCount = allocateDeviceMemory(count, nEntries * sizeof(bool),
+                                                     CL_MEM_WRITE_ONLY);
+
+       
+        size_t szLocalWorkSize = NO_THREADS_BLOCK;
+		size_t szGlobalWorkSize = nEntries * NO_THREADS_BLOCK; 
+		setKernelArg("countKTransaction", 0, sizeof(cl_mem), &dMarketBasketBitmap);
+		setKernelArg("countKTransaction", 1, sizeof(cl_mem), &dCount);
+		setKernelArg("countKTransaction", 2, sizeof(cl_mem), &dBitLookup);
+		setKernelArg("countKTransaction", 3, sizeof(int), 0);
+		setKernelArg("countKTransaction", 4, sizeof(unsigned), (void*)&nIntegers);
+		setKernelArg("countKTransaction", 5, sizeof(unsigned), (void*)&supportValue);
+
+		runKernel("countKTransaction", szLocalWorkSize, szGlobalWorkSize);
+		waitForEvent(); 
+        dItemBitmap = allocateDeviceMemory(0, nEntries * sizeof(unsigned), CL_MEM_READ_ONLY);
+        setKernelArg("countKItem", 0, sizeof(cl_mem), &dItemBitmap);
+        setKernelArg("countKItem", 1, sizeof(cl_mem), &dCount);
+        setKernelArg("countKItem", 2, sizeof(cl_mem), &dNEntries);
+		setKernelArg("countKItem", 3, sizeof(int), 0);
+        setKernelArg("countKItem", 4, sizeof(unsigned), (void*)&nEntries);
+
+		runKernel("countKItem", szLocalWorkSize, szGlobalWorkSize);
+		waitForEvent();
+         
+        copyFromDevice(dCount, count, nEntries * sizeof(bool));
+        const unsigned oldEntries = nEntries; 
+		copyFromDevice(dNEntries, &nEntries, sizeof(unsigned));     
+       
+        verifyItemSet(count, oldEntries);
+		break;
+	}
     printGpuTime();
-    verifyBitmapCount(count);
     cleanup();
 }
 
+void
+createTwoItemSet(const int* count)
+{
+    if (nItems % 32) {
+       nItemIntegers = nItems / 32 + 1;    
+    } else {
+       nItemIntegers = nItems / 32; 
+    }
+    itemsetBitmap = (unsigned*)allocateHostMemory(sizeof(unsigned) * nItems * nItemIntegers);
+    memset(itemsetBitmap, 0, sizeof(unsigned) * nItems * nItemIntegers);
+    for (unsigned i = 0; i < nItems; ++i) {
+        if (count[i] < supportValue)  {
+            continue;
+        }    
+        for (unsigned j = i + 1; j < nItems; ++j) {
+            if (count[j] < supportValue) {
+               continue;
+            }
+        } 
+        ++nEntries;   
+    } 
+    
+    
+    itemsetBitmap = (unsigned*)allocateHostMemory(sizeof(unsigned) * nEntries * nItemIntegers);
+    memset(itemsetBitmap, 0, sizeof(unsigned) * nEntries * nItemIntegers);
+ 
+    unsigned counter = 0;
+    for (unsigned i = 0; i < nItems; ++i) {
+        if (count[i] < supportValue)  {
+            continue;
+        }
+        for (unsigned j = i + 1; j < nItems; ++j) {
+            if (count[j] < supportValue) {
+               continue;
+            }
+            bitset<32> bItem(itemsetBitmap[counter * nItemIntegers + i / 32]);
+            bItem.set(i % 32, 1);
+            itemsetBitmap[counter * nItemIntegers + i / 32] = bItem.to_ulong();
+            bitset<32> bItem1(itemsetBitmap[counter * nItemIntegers + j / 32]);
+            bItem.set(j % 32, 1);
+            itemsetBitmap[counter * nItemIntegers + j / 32] = bItem.to_ulong();
+            ++counter;
+        }
+    }
+}
 
 void 
 verifyCount(int * count)
@@ -128,7 +207,7 @@ verifyCount(int * count)
            cout << "**********ERROR in item " << k <<  endl << endl;;
            cout << "Actual: "  << countI << "Result: " << count[k] << endl;
            return;
-        } 
+        }
 	}
     cout << "Verified" << endl << endl;
 }
@@ -147,8 +226,28 @@ verifyBitmapCount(int* count)
            cout << "Actual: "  << countI << "Result: " << count[k] << endl;
            return;
         }
+  
     }
     cout << "Verified" << endl << endl;
+}
+
+void
+verifyItemSet(bool* count, const unsigned e)
+{
+    unsigned cEntries = 0;
+    for (unsigned k = 0; k < e; ++k) {
+        if (count[k] == 0) continue;  
+        for (unsigned i = k + 1; i < e; ++i) {
+           cEntries += count[i];
+        }
+    }
+    if (cEntries != nEntries) {
+       cout << "*********ERROR" << " Actual: " << cEntries 
+                                << " Result: " << nEntries  
+                                << endl;
+       return;
+    } 
+    cout << "Verified"<< endl << endl;;    
 }
 
 void
