@@ -1,4 +1,5 @@
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics: enable
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
 #pragma OPENCL EXTENSION cl_amd_printf : enable
 
 __kernel void
@@ -93,6 +94,70 @@ itemCount3(__global const uint* const dMarketBasketBitmap,
     barrier(CLK_LOCAL_MEM_FENCE);
     if (tx == 0) {
         dCount[item] = *sCount;
+    }
+}
+
+
+__kernel void 
+countKTransaction(__global const uint* const dMarketBasketBitmap, 
+           __global uchar* const dCount,
+           __constant uchar* dBitLookup,
+           __local int* sCount,
+           const unsigned nIntegers, const unsigned supportValue) 
+{
+	const size_t bx = get_group_id(0);
+	const size_t tx = get_local_id(0);
+	const unsigned item = bx;
+	*sCount = 0;
+	barrier(CLK_LOCAL_MEM_FENCE);
+	const unsigned dataPerThread = nIntegers / 256 + 1;
+	const unsigned startIndex = (item * nIntegers);
+	const unsigned maxIndex = (bx + 1) * nIntegers;
+	uint count = 0;
+	for (unsigned i = 0; i < dataPerThread; ++i) {
+		const unsigned index = startIndex + (i * 256) + tx;
+		if (index >= maxIndex) break;
+		const uint val = (dMarketBasketBitmap[index]);
+		const ushort upval = (val & 0xffff0000) >> 16;
+		const ushort lowval = val & 0x0000ffff;
+		count += (uint)dBitLookup[upval] + (uint)dBitLookup[lowval];
+	}
+	atom_add(sCount, count);
+	barrier(CLK_LOCAL_MEM_FENCE);
+	if (tx == 0) {
+        if (*sCount > supportValue) { 
+		    dCount[item] = 1;
+        }
+	}
+}
+
+
+__kernel void
+countKItem(__global unsigned* dItemBitmap,
+           __global uchar* dCount, __global unsigned* dNEntries,
+           __local int* sCount, const unsigned nEntries)  
+                                   
+{
+    const size_t bx = get_group_id(0);
+    const size_t tx = get_local_id(0);
+    const unsigned startIndex = bx;
+    if (tx == 0) {
+       *sCount = dCount[startIndex];
+    }
+    barrier(CLK_LOCAL_MEM_FENCE); 
+    if (*sCount == 0) return;
+    const unsigned entriesPerThread = (nEntries - bx) / 256 + 1;
+    int count = 0;
+    for (unsigned i = 0; i < entriesPerThread; ++i) {
+         const unsigned index = startIndex + 1 + i * 256 + tx;
+         if (index >= nEntries) break; 
+         count += (uint)dCount[index]; 
+    } 
+    if (count)
+       atomic_add(sCount, count);
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (tx == 0) {
+       atom_add(dNEntries, *sCount - 1);
     }
 }
 

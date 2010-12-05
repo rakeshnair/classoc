@@ -13,6 +13,8 @@ void gpuAssocBitmap(const char* file);
 void test();
 void verifyCount(int * count);
 void verifyBitmapCount(int * count);
+void verifyItemSet(bool* count, const unsigned e);
+void createTwoItemSet(const int* count);
 
 typedef unsigned char uchar;
 extern uchar* bitLookup; 

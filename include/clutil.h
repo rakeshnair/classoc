@@ -55,7 +55,8 @@ void copyFromDevice(const cl_mem dMem,
 
 double executionTime();
 cl_mem allocateDeviceMemory(void* buffer, const unsigned size, cl_mem_flags);
-                          
+
+void freeDeviceBuffer(cl_mem);
 
 void printGpuTime();
 
