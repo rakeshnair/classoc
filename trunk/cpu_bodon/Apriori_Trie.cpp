@@ -40,6 +40,7 @@ void Apriori_Trie::candidate_generation(
       candidate_generation_assist( &main_trie,
 				   maybe_candidate, 
 				   input_output_manager );
+      cout << "may be " << maybe_candidate.size() << endl; 
    }
 }
 

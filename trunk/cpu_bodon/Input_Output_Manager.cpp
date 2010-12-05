@@ -13,6 +13,7 @@
   
 #include "Input_Output_Manager.hpp"
 #include <algorithm>
+#include<iostream>
 
 Input_Output_Manager::Input_Output_Manager( ifstream& basket_file, 
 					    const char* output_file_name ):
@@ -82,6 +83,8 @@ countertype Input_Output_Manager::find_frequent_items(
 
    /// Finding the frequent items
    double min_occurrence = min_supp * (basket_number - 0.5);
+   cout << "MIN" << min_occurrence << endl;
+   cout << "BASKET" << basket_number << endl;
    vector<countertype>::size_type edgeIndex;
 
    set< pair<countertype, itemtype> > temp_set;

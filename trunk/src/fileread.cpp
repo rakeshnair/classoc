@@ -102,7 +102,7 @@ fileReadBitmap(const char* file)
         nIntegers = nTransactions / 32;
     }
     
-    marketBasketBitmap = (unsigned*)allocateHostMemory(sizeof(int) * nIntegers *
+    marketBasketBitmap = (unsigned*)malloc(sizeof(int) * nIntegers *
                                                          nItems);
     memset(marketBasketBitmap, 0, sizeof(int) * nIntegers * nItems);
     unsigned maxitem = 0;
