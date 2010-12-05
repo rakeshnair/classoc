@@ -170,15 +170,4 @@ countKItem(__global unsigned* dItemBitmap,
     }
 }
 
-__kernel void
-testbit(__global uint* dBuff)
-{
-    const size_t tx = get_local_id(0);
-    ushort2  a = dBuff[tx];
-    const uint upval = (a.x & 0xff00) >> 8;
-    const uint lowval = a.y & 0x00ff;
-    //printf("hello\n"); 
-    printf("%d %u %u\n", tx, upval, lowval); 
-
-}
 
