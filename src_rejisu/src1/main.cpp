@@ -9,7 +9,7 @@ int
 main()
 {
     //test(); 
-    gpuAssoc();
+    gpuAssoc(MARKET_BASKET_FILE);
     free(marketBasket);
 }
 

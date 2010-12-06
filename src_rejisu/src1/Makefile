@@ -41,7 +41,7 @@ CXXWARN_FLAGS := \
 
 LIB += -lOpenCL
 INCLUDES += -I../../include/
-CPPFILES = assoc.cpp  clutil.cpp  fileread.cpp  main.cpp
+CPPFILES = assoc.cpp  clutil.cpp  fileread.cpp  main.cpp primes.cpp
 OBJFILES := $(patsubst %.cpp,%.o, $(CPPFILES))
 HFILES := $(wildcard *.h)
 
