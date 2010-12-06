@@ -9,13 +9,14 @@
 using namespace std;
 
 bool* marketBasket;
-unsigned nTranscations = 0;
-unsigned nItems = 0;
-unsigned long *gTransactions;
+unsigned gNTranscations = 0;
+unsigned gNItems = 0;
+unsigned long *gTransactionSet;
+int gNoOfPrimes =  0;
 
 
 void
-fileRead()
+fileRead(const char * xFileName)
 {
     ifstream fp;
     fp.open(MARKET_BASKET_FILE, ios::in);
@@ -31,26 +32,29 @@ fileRead()
         unsigned item; 
         while (!s.eof()) {
             s >> item;
-            if (item > nItems) nItems = item;
+            if (item > gNItems) gNItems = item;
             //if (s.eof()) break;
         } 
-        ++nTranscations;
+        ++gNTranscations;
     }
-    ++nItems; // 0 is an item
+    ++gNItems; // 0 is an item
     cout << "Market Basket File: "  << MARKET_BASKET_FILE << endl
-         << "Transcations: " << nTranscations << endl
-         << "Items: " << nItems << endl;
+         << "Transcations: " << gNTranscations << endl
+         << "Items: " << gNItems << endl;
 
     fp.close();
     fp.open(MARKET_BASKET_FILE, ios::in); 
 
-     marketBasket = (bool*)malloc(sizeof(bool) * nItems * nTranscations);
-	 gTransactions = (unsigned long*)malloc(sizeof(long) * nTranscations* NO_DIV_PRIME);
-	 for(int i =0 ; i< nTranscations* NO_DIV_PRIME ; ++i)
-		 gTransactions[i]=1;
+     marketBasket = (bool*)malloc(sizeof(bool) * gNItems * gNTranscations);
+	 gTransactionSet = (unsigned long*)malloc(sizeof(long) * gNTranscations* NO_DIV_PRIME);
+	 for(int i =0 ; i< gNTranscations* NO_DIV_PRIME ; ++i)
+		 gTransactionSet[i]=1;
     
     unsigned tTrans = 0;
-	int lPart =  nItems/NO_DIV_PRIME;
+	int lPart =  gNItems/NO_DIV_PRIME + 1;
+	// this has been done to cover up the extra Part
+	// Only in the case of the last one does it taki the last prime Number
+	gNoOfPrimes = lPart; 
     while(!fp.eof())
    	{
 		string line;
@@ -61,17 +65,18 @@ fileRead()
 		while (!s.eof())
 		{
 			s >> item;
-			marketBasket[(item * nTranscations) + tTrans] = 1;
+			marketBasket[(item * gNTranscations) + tTrans] = 1;
 			int lLocation  = item/lPart;
-			unsigned long lTemp =   gTransactions[NO_DIV_PRIME *tTrans +lLocation];
-			gTransactions[NO_DIV_PRIME *tTrans +lLocation] = gTransactions[ NO_DIV_PRIME * tTrans + lLocation] * primes[item% lPart];
-			if(lTemp >gTransactions[NO_DIV_PRIME *tTrans     +lLocation])
+			unsigned long lTemp =   gTransactionSet[NO_DIV_PRIME *tTrans +lLocation];
+			gTransactionSet[NO_DIV_PRIME *tTrans +lLocation] = gTransactionSet[ NO_DIV_PRIME * tTrans + lLocation] * primes[item% lPart];
+			// This is done to check whethere anything goes out of Bounds
+			if(lTemp >gTransactionSet[NO_DIV_PRIME *tTrans     +lLocation])
 				cout<<"REJISUUUU\n";
 
 
 
 		}
-		// cout<< gTransactions[tTrans] << "Value"<<endl;
+		// cout<< gTransactionSet[tTrans] << "Value"<<endl;
 		++tTrans;  
     }
 
