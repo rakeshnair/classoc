@@ -41,8 +41,8 @@ gpuAssoc( const char *xFileName)
 	setKernelArg("mItemCount",7, sizeof(unsigned),(void*)&gSupportCount);
 	setKernelArg("mItemCount",8, sizeof(unsigned),(void*)&gNoOfPrimes);
 	size_t szLocalWorkSize = NO_THREADS_BLOCK;
-	size_t szGlobalWorkSize = ((gNTranscations/NO_THREADS_BLOCK) + 1)*  NO_THREADS_BLOCK;
-	// running kernel
+	size_t szGlobalWorkSize = ((gNTranscations/NO_THREADS_BLOCK) + 1)*  NO_THREADS_BLOCK
+															*NO_DIV_PRIME;	// running kernel
 	runKernel("mItemCount", szLocalWorkSize, szGlobalWorkSize);
 	waitForEvent();
     printGpuTime();
