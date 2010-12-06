@@ -58,7 +58,7 @@ printGpuTime()
 {
     cout << "Kernel execution Time on " 
          << ((device_type == CL_DEVICE_TYPE_GPU ) ? "GPU" : "CPU")
-         << " : " << executionTime() << " ms" << endl;
+         << " : " << executionTime() << " ms" << endl << endl;
 }
 
 
@@ -83,7 +83,7 @@ executionTime()
 /* size in bytes*/
 cl_mem
 allocateDeviceMemory(void* buffer, const unsigned size, 
-                     cl_mem_flags flags)
+                     cl_mem_flags flags, const bool autoFree)
                                       
 {
     cl_int ciErrNum = CL_SUCCESS;
@@ -93,7 +93,8 @@ allocateDeviceMemory(void* buffer, const unsigned size,
                                   0,
                                   &ciErrNum);
     checkError(ciErrNum, "clCreateBuffer");
-    deviceBuffers.push_back(dBuffer);
+    if (autoFree)
+       deviceBuffers.push_back(dBuffer);
 
     if (buffer) {
     	copyToDevice(dBuffer, buffer, size);
@@ -109,6 +110,14 @@ allocateHostMemory(const unsigned size)
     memset(p, 0, size);
     hostBuffers.push_back(p);
     return p;
+}
+
+void
+freeDeviceBuffer(cl_mem db)
+{
+	if (db) {
+		clReleaseMemObject(db);
+	}
 }
 
 
@@ -427,6 +436,7 @@ setKernelArg(const string& kernel, const unsigned argIndex,
 void 
 waitForEvent()
 {
+    if (gpuExecution.size() == 0) return;
     cl_int ciErrNum = clWaitForEvents(1, &gpuExecution[gpuExecution.size() - 1]);
     checkError(ciErrNum, "clWaitForEvents");
 }
