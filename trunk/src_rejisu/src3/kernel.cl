@@ -24,31 +24,40 @@ mItemCount(__global const long * const dTransactions,
 {
 	 const size_t bx = get_group_id(0);
 	 const size_t tx = get_local_id(0);
-	 int lTransactionIndex = bx* 256 + tx;
+	 int lNoOfTransactions = 0;
 	 if(tx<gNItems)
 		 dFreqItemCountSh[tx] = 0;
 	 barrier(CLK_LOCAL_MEM_FENCE);
-	 if(lTransactionIndex>= gNTranscations)
-		 return;
-	 int lItemCount =0;
-	 for(int i= 0 ;i<NO_DIV_PRIME ;++i)
+	 int  lTransactionIndex;
+	 long lCurrPrime = gPrimes[bx%gNoOfPrimes];
+	 int lNoOfTran =  gNTranscations/256 +1;
+	 int lIndexofPrime = bx/gNoOfPrimes;
+	 if(bx<gNItems)
+		 dFreqItemCount[bx] =  lNoOfTran;
+	 for(int i= 0 ;lNoOfTran ;++i)
 	 {
-		 int lTransactionLoc = lTransactionIndex * NO_DIV_PRIME + i;
-		 unsigned long lTransaction = dTransactions[lTransactionLoc];
-		 for(int j =0 ;j <gNoOfPrimes ; ++j)
+		 int  lTransactionIndex =   i* 256 + tx;
+		 if(lTransactionIndex > gNTranscations)
 		 {
-			 if(lTransaction % gPrimes[j]==0)
-			 {
-				 if(dFreqItems[lItemCount] == false)
-				 {
-					 atom_add(dFreqItemCountSh + lItemCount,1);
-					 if(dFreqItemCountSh[lItemCount] >= SUPPORT_COUNT)
-						 dFreqItems[lItemCount] = true;		 
-				 }
-			 }
-			 lItemCount++;
+			 break;
+		 }
+		 int lTransactionLoc = lTransactionIndex * NO_DIV_PRIME + lIndexofPrime;
+		 unsigned long lTransaction = dTransactions[lTransactionLoc];
+		 if(lTransaction % lCurrPrime==0)
+		 {
+			 lNoOfTransactions++;
+
 		 }
 	 }
+	  barrier(CLK_LOCAL_MEM_FENCE);
+	  atom_add(dFreqItemCountSh + bx,lNoOfTransactions);
+	  barrier(CLK_LOCAL_MEM_FENCE);
+	  if(tx==0)
+		  if(dFreqItemCountSh[bx] >=SUPPORT_COUNT)
+			  dFreqItems[bx] = true;
+	  dFreqItemCount[bx] = dFreqItemCountSh[bx];
+
+/*
 	 barrier(CLK_LOCAL_MEM_FENCE);
 	 if(tx<gNItems)
 	 {
@@ -61,5 +70,6 @@ mItemCount(__global const long * const dTransactions,
 		 }
 
 	 }
+	 */
 
 }
