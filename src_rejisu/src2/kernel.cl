@@ -1,17 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics: enable
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
-	__kernel void
-vecAdd(__global const int* const a,
-       __global const int* const b,
-       __global int* const c)
-{
-     const size_t bx = get_group_id(0);
-     const size_t tx = get_local_id(0);
-     const unsigned index = bx * 256 + tx;
-     c[index] = a[index] + b[index]; 
-}
-//	__global bool* const dFreqItems,
-	__kernel void
+__kernel void
 mItemCount(__global const long * const dTransactions,
 		__global bool* const dFreqItems,
 		__global int* const dFreqItemCount,
@@ -24,32 +13,29 @@ mItemCount(__global const long * const dTransactions,
 {
 	 const size_t bx = get_group_id(0);
 	 const size_t tx = get_local_id(0);
-	 int lTransactionIndex = bx* 256 + tx;
+	 int lTransactionLoc= bx* 256 + tx;
 	 if(tx<gNItems)
 		 dFreqItemCountSh[tx] = 0;
 	 barrier(CLK_LOCAL_MEM_FENCE);
-	 if(lTransactionIndex>= gNTranscations)
+	 if(lTransactionLoc >=gNTranscations *NO_DIV_PRIME)
 		 return;
-	 int lItemCount =0;
-	 for(int i= 0 ;i<NO_DIV_PRIME ;++i)
+	 unsigned long lTransaction = dTransactions[lTransactionLoc];
+	 int lItemCount =  (bx%NO_DIV_PRIME) * gNoOfPrimes;
+	 for(int j =0 ;j <gNoOfPrimes ; ++j)
 	 {
-		 int lTransactionLoc = lTransactionIndex * NO_DIV_PRIME + i;
-		 unsigned long lTransaction = dTransactions[lTransactionLoc];
-		 for(int j =0 ;j <gNoOfPrimes ; ++j)
+		 int lCurrentItem = lItemCount + j;
+		 if(lTransaction % gPrimes[j]==0)
 		 {
-			 if(lTransaction % gPrimes[j]==0)
+			 if(dFreqItems[lCurrentItem] == false)
 			 {
-				 if(dFreqItems[lItemCount] == false)
-				 {
-					 atom_add(dFreqItemCountSh + lItemCount,1);
-					 if(dFreqItemCountSh[lItemCount] >= SUPPORT_COUNT)
-						 dFreqItems[lItemCount] = true;		 
-				 }
+				 atom_add(dFreqItemCount +  lCurrentItem,1);
+				 if(dFreqItemCount[ lCurrentItem] >= SUPPORT_COUNT)
+					 dFreqItems[ lCurrentItem] = true;		 
 			 }
-			 lItemCount++;
 		 }
 	 }
 	 barrier(CLK_LOCAL_MEM_FENCE);
+	 /*
 	 if(tx<gNItems)
 	 {
 		 if(dFreqItems[tx] == false)
@@ -61,5 +47,6 @@ mItemCount(__global const long * const dTransactions,
 		 }
 
 	 }
+	 */
 
 }
