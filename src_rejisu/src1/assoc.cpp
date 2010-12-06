@@ -1,6 +1,7 @@
 #include<assoc.h>
 #include<clutil.h>
 #include"primes.h"
+#include<string.h>
 
 
 void

@@ -254,7 +254,7 @@ compileProgram(const char* const header_file,
     ciErrNum = clBuildProgram(cpProgram,
                               1,        /* Number of devices for which we need to do this */
                               &device, /* Device List */
-                              "-DKERNEL ",
+                              "-DKERNEL",
                               NULL, /* ptr to function */
                               NULL); /* User data to pass to ptrfn */
 

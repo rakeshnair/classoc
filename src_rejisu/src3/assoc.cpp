@@ -36,14 +36,15 @@ gpuAssoc( const char *xFileName)
 	setKernelArg("mItemCount",1, sizeof(cl_mem),&dFreqItems);
 	setKernelArg("mItemCount",2, sizeof(cl_mem),&dFreqItemCount);
 	setKernelArg("mItemCount",3,  lFreqItemCountSize , 0);
-	setKernelArg("mItemCount",4, sizeof(cl_mem),&dPrimes);
-	setKernelArg("mItemCount",5, sizeof(unsigned),(void*)&gNTranscations);
-	setKernelArg("mItemCount",6, sizeof(unsigned),(void*)&gNItems);
-	setKernelArg("mItemCount",7, sizeof(unsigned),(void*)&gSupportCount);
-	setKernelArg("mItemCount",8, sizeof(unsigned),(void*)&gNoOfPrimes);
+	setKernelArg("mItemCount",4,  lTransationSize/4, 0);
+	setKernelArg("mItemCount",5, sizeof(cl_mem),&dPrimes);
+	setKernelArg("mItemCount",6, sizeof(unsigned),(void*)&gNTranscations);
+	setKernelArg("mItemCount",7, sizeof(unsigned),(void*)&gNItems);
+	setKernelArg("mItemCount",8, sizeof(unsigned),(void*)&gSupportCount);
+	setKernelArg("mItemCount",9, sizeof(unsigned),(void*)&gNoOfPrimes);
 	size_t szLocalWorkSize = NO_THREADS_BLOCK;
-	size_t szGlobalWorkSize = ((gNTranscations/NO_THREADS_BLOCK) + 1)*  NO_THREADS_BLOCK
-															*NO_DIV_PRIME;	// running kernel
+	size_t szGlobalWorkSize = gNItems * NO_THREADS_BLOCK;
+	// running kernel
 	runKernel("mItemCount", szLocalWorkSize, szGlobalWorkSize);
 	waitForEvent();
     printGpuTime();
