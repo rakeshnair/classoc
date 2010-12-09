@@ -117,7 +117,7 @@ fileReadBitmap(const char* file)
        while (!s.eof()) {
            s >> item;
            bitset<32> bTrans(marketBasketBitmap[(item * nIntegers) + tTrans / 32]); 
-           bTrans.set(tTrans % 32, 1);
+           bTrans.set(31 - (tTrans % 32), 1);
            marketBasketBitmap[(item * nIntegers) + tTrans / 32] = bTrans.to_ulong();
            ++titem;
        }
