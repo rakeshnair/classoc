@@ -3,6 +3,7 @@
 #include<assert.h>
 #include<bitset>
 #include<string.h>
+#include<Timer.h>
 #include "Trie.h"
 const unsigned supportValue = 2000;
 unsigned nEntries = 0;
@@ -32,9 +33,10 @@ gpuAssocBitmap(const char* file)
                                                        CL_MEM_READ_ONLY, false);
     cl_mem dCount = allocateDeviceMemory(count, nEntries * sizeof(bool),
                                                      CL_MEM_WRITE_ONLY, false);
-; 
     createKernel("countKTransaction");
     unsigned nOldEntries = nEntries;
+    Timer t;
+    t.Restart();
 	while(1)
 	{
         cout << "ITEMSET " << itemset << " of size " << nEntries << endl;
@@ -93,6 +95,7 @@ gpuAssocBitmap(const char* file)
         cout << "item set generation done" << endl;
         ++itemset;
 	}
+    cout << "Total time " << t.GetTime() << " seconds" <<  endl;
     printGpuTime();
     freeDeviceBuffer(dMarketBasketBitmap);
     freeDeviceBuffer(dCount);
