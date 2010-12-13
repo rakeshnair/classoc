@@ -82,12 +82,12 @@ gpuAssocBitmap(const char* file)
 		setKernelArg("countKTransaction", 4, sizeof(unsigned), (void*)&nIntegers);
 		setKernelArg("countKTransaction", 5, sizeof(unsigned), (void*)&supportValue);
 		setKernelArg("countKTransaction", 6, sizeof(unsigned), (void*)&workPerBlock);
-        cout << "Running kernel"<< endl;
+//        cout << "Running kernel"<< endl;
 		runKernel("countKTransaction", szLocalWorkSize, szGlobalWorkSize);
 		waitForEvent(); 
         copyFromDevice(dCount, count, nEntries * sizeof(bool));
 
-        cout << "Copy From device" << endl;
+//        cout << "Copy From device" << endl;
         if (!generateKItemSet(count)) {
             break; 
         }
@@ -127,7 +127,7 @@ generateKItemSet(const bool* count)
        nEntries = index;
 	   return true;   
     }
-    cout << "start gen " << endl; 
+   // cout << "start gen " << endl; 
 	vector<vector<unsigned > > kItemSet;
     for (unsigned i = 0; i < nItems; ++i) {
         const TrieNode* node = trie->getRootNode(i); 
@@ -139,7 +139,7 @@ generateKItemSet(const bool* count)
         
     }  
     
-    cout << "end gen " << endl; 
+    //cout << "end gen " << endl; 
     if (kItemSet.size() == 0) return false;
     assert(newBitmap.size() == kItemSet.size() * nIntegers );
 
