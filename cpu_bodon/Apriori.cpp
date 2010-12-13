@@ -87,6 +87,7 @@ void Apriori::APRIORI_alg( const double min_supp,
 //   apriori_trie->show_content();
 //   getchar();
    double min_supp_abs = min_supp * (basket_number - 0.5);
+   cout << "ABS" << min_supp_abs << endl;
 //   apriori_trie->show_content();
 //   getchar();
    candidate_size++;
