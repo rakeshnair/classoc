@@ -52,6 +52,9 @@
   % every instance of \includegraphics
   % \DeclareGraphicsExtensions{.eps}
 \fi
+\usepackage[dvips]{graphicx}
+\usepackage{listings}
+\usepackage{color}
 % graphicx was written by David Carlisle and Sebastian Rahtz. It is
 % required if you want graphics, photos, etc. graphicx.sty is already
 % installed on most LaTeX systems. The latest version and documentation can
@@ -95,30 +98,32 @@
 % version and documentation can be obtained at:
 % http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
 
+\lstset{ %
+language=C++,                % choose the language of the code
+basicstyle=\small,       % the size of the fonts that are used for the code
+%numbers=left,                   % where to put the line-numbers
+numberstyle=\tiny,      % the size of the fonts that are used for the line-numbers
+keywordstyle=\color{black}\bfseries,
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,                   % adds a frame around the code
+tabsize=2,              % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+escapeinside={\%}{)}          % if you want to add a comment within your code
+}
 
 
 
 
-% *** SPECIALIZED LIST PACKAGES ***
-%
-%\usepackage{algorithmic}
-% algorithmic.sty was written by Peter Williams and Rogerio Brito.
-% This package provides an algorithmic environment fo describing algorithms.
-% You can use the algorithmic environment in-text or within a figure
-% environment to provide for a floating algorithm. Do NOT use the algorithm
-% floating environment provided by algorithm.sty (by the same authors) or
-% algorithm2e.sty (by Christophe Fiorio) as IEEE does not use dedicated
-% algorithm float types and packages that provide these will not provide
-% correct IEEE style captions. The latest version and documentation of
-% algorithmic.sty can be obtained at:
-% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithms/
-% There is also a support site at:
-% http://algorithms.berlios.de/index.html
-% Also of interest may be the (relatively newer and more customizable)
-% algorithmicx.sty package by Szasz Janos:
-% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithmicx/
 
-
+\usepackage{algorithmic}
+\usepackage{algorithm}
 
 
 % *** ALIGNMENT PACKAGES ***
@@ -267,9 +272,8 @@
 % use a multiple column layout for up to three different
 % affiliations
 \author{\IEEEauthorblockN{Rejith George Joseph \\ Girish Ravunnikutty \\ Rakesh Nair \\ and Ajith Kumar Vasanthakumar}
-\IEEEauthorblockA{Computer Engineering Department, 
-University of Florida\\
-rjoseph, girishr @ufl.edu}}
+\IEEEauthorblockA{University of Florida\\
+rjoseph, girishr raknair07 @ufl.edu}}
 
 
 % conference papers do not typically use \thanks and this command
@@ -341,22 +345,222 @@ The abstract goes here.
 
 \subsection{Frequent item set mining}
 
+\begin{algorithm}\caption{Apriori Algorithm}\label{alg:apriori}
+  \begin{algorithmic}[1]
+	\STATE \texttt{candidate\_items = items}
+	\STATE \texttt{K = 1}
+	\WHILE {candidate\_items != empty}
+	    \STATE \texttt{frequent\_items = count\_frequent\_items(candidate\_items)}
+			\STATE \texttt{K = K + 1}
+	    \STATE \texttt {candidate\_items = generate\_candidate\_items(frequent\_items, K)}
+    \ENDWHILE
+  \end{algorithmic}
+\end{algorithm}
+
+
+
 \subsection{Related Work}
 
-\subsection{OpenCL}
+\subsection{Java Fork/join framework}
+Fork/Join is a lightweight task framework included in $JSR166y$ and introduced as part of the Java 7 platform. The Fork/Join framework aims at providing a support for parallel programming by way of splitting a task into smaller tasks, which are performed in parallel, waiting for these tasks to complete and then composing the final result out of the intermediate results.
 
-\subsection{Java fork/join}
+Fork/Join employs a simple and highly efficient design technique for obtaining good parallel performance. The algorithms employing Fork/Join are very similar to the familiar divide-and-conquer algorithms. Listing~\ref{list:forkjoin} shows typical Fork/Join algorithm. 
 
-\section{Parallelization of Frequent item set Mining}
+\begin{lstlisting}[caption={Typical Fork/Join algorithm}, label=list:forkjoin]
+Result solve (Problem problem) 
+{
+   if( problem is small enough)
+   {
+	    compute the solution
+	 }		 
+	 else
+	 {
+	    split the program into small, independent parts
+			fork new subtask to solve each independent part
+			join all the subtasks
+			compose a result from all the subtasks
+	 }
+}
+\end{lstlisting}
+
+
+Fork/Join algorithms are recursive by nature and involve splitting the task into subtasks until they are small enough to be solved sequentially. The $fork$ operation spawns a new parallel fork/join subtask. The $join$ operation causes the parent task to wait till all the forked subtasks have completed execution, where after it merges the results of the subtasks. A high level view of Fork/Join architecture is shown in Figure~\ref{fig:forkjoin}.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{forkjoin.eps}
+\caption{Fork/Join schematic}
+\label{fig:forkjoin}
+\end{figure}
+
+The Fork/Join framework can be implemented in a number of ways. The use of raw threads is an option. $Threads.start()$ and $Threads.join()$ will provide essentially a similar functionality. However this approach might result in the creation of a very large number of threads in the JVM, almost half of which will spend their entire time waiting for subtasks to complete. Hence this is not a good approach, especially since threads are expensive to create and use up a lot of memory. Some of the salient features of Fork/Join framework are
+
+\begin{itemize}
+\item{In Fork/Join program a pool of threads is maintained. These threads are assigned tasks to perform. Ideally the number of these threads will be equal to the number of available processors in a system with each thread being mapped to a single CPU.}
+\item{A Task object needs to be created which the threads created recursively utilize.  A granularity parameter, which is algorithm dependent, needs to be identified, which forms the basis for ending any further creation of subtask and will cause an intermediate result to be generated.}
+\item{Each worker thread maintains a double-ended queue to store its tasks. This queue performs both FIFO push and pop and LIFO Take operations. Every time a subtask is generated it is pushed into the queue. The worker threads process these tasks in a LIFO manner. When a thread has no task of its own to execute, it attempts to obtain a task from the queue of a random thread, using FIFO rule. This feature is called $Work-Stealing$.}
+\item{When a worker thread encounters a join operation, it completes all the tasks until the target task is completed.}
+\end{itemize}
+
+
+\subsection{ OpenCL device architecture} \label{sec:gpuArch}
+
+In this paper, we use GPUs and multi core CPUs as OpenCL devices. GPU is a dedicated computing device to address problems that have high arithmetic intensity i.e. high ratio of arithmetic operations to memory operations. Each of the GPU cores has a SIMT (Single Instruction Multiple Thread) architecture. The core of a GPU has a small cache and limited flow of control - both of these take up most of the transistors in a CPU whereas in a GPU, more transistors are used up for computing cores.
+
+Parallel portions of an application are expressed as device kernels which run on many threads. GPU threads are extremely lightweight and the creation overhead is very little. The scheduling is done by the hardware unlike the operating system in a CPU. A typical GPU needs hundreds of threads for full utilization of hardware where as CPU can be saturated with only a few threads.
+
+ATI (Owned by AMD) and NVIDIA are the leading vendors that provide GPUs with general purpose computing capabilities. NVIDIA provides the Compute Unified Device Architecture (CUDA) Framework with a new parallel programming model and Instruction Set Architecture to leverage the capabilities of the massive parallel computing hardware in NVIDIA GPUs. CUDA framework provides an extended C application programming interface and a run time library which enables the access and control of devices from the host. Similarly AMD provides ATI stream technology that enable AMD CPUs and GPUs to accelerate applications.
+
+OpenCL (Open Computing Language) is an open royalty-free standard to write parallel programs that execute across heterogeneous computing environment consisting of CPUs, GPUs. OpenCL framework provides a ISO C99 based language for writing portable code that executes on heterogeneous platforms. NVIDIA provide openCL drivers for their GPUs and AMD provides for the CPUs and ATI GPUs.
+
+An OpenCL device is identified as a collection of compute units. Each compute unit can contain many Processing Elements (PEs). OpenCL program executes in two parts: Kernels that execute on OpenCL devices and a host program that executes on the host. The instance of the kernel that is executing on a compute unit is called work-item. Work-items are organized into work groups Work-items in a work-group executes the same code in SIMD fashion on all the processing elements of a compute unit. Each work item in a work group has a unique ID and the work-groups has a global unique ID. In NVIDIA CUDA framework, work-items are identified as threads and work-group as blocks. The application running on the hosts uses OpenCL APIs to control the execution of kernels on devices. OpenCL provides a command queue interface to coordinate execution of kernels on the devices from the host. The host places kernel execution, memory transfer and synchronization commands into the command queue and are then scheduled to execute on the devices.
+
+Work items executing an OpenCL kernel has access to four distinct memory hierarchies.
+\begin{itemize}
+\item{Global Memory: All the work-items in all work-roups has read and write access to this memory. Host can read and write to global memory
+through memory commands placed on command queue. In a GPU, Global memory is implemented as DRAM. Hence the access latency is high. In NVIDIA GPUs, peak read performance occurs when all the work items access continuous global memory locations. This is known as coalesced memory access and is shown in Figure~\ref{fig:coalesced}.} Non-coalesced access is shown in Figure~\ref{fig:noncoalesced}
+\item{Constant Memory: Part of the global memory that is read only to all work-items in all work-groups. Some devices provide fast cached access to constant memory. The memory is allocated and data is copied by the host.}
+\item{Local Memory: The memory region local to a work-group, shared by all the work-items in that work-group. OpenCL devices like NVIDIA and ATI GPUs provide dedicated local memory on the device which is as fast as registers. In some other devices local memory is mapped to global memory. in NVIDIA GPUs, local memory is referred as shared memory. Shared memory is implemented as banks. When multiple work items (threads) in a work group (block) access the same bank, bank conflicts occur which results in the serialization of access.} 
+\item{Private Memory: The memory region private to a work item. These are mostly hardware registers. In some devices like NVIDIA GPU excessive use of private memory results in register spilling to global memory which in turn degrades the performance. Host cannot read and write to local or private memories.}
+\end{itemize}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{coalesced.eps}
+\caption{Coalesced Global Memory Access}
+\label{fig:coalesced}
+\end{figure}
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{noncoalesced.eps}
+\caption{Non-Coalesced Global Memory Access}
+\label{fig:noncoalesced}
+\end{figure}
+
+A high level view of OpenCL device architecture is shown in Figure~\ref{fig:computeDevice}.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in]{computedevice.eps}
+\caption{OpenCL compute device}
+\label{fig:computeDevice}
+\end{figure}
+
+OpenCL provides two levels of synchronization
+\begin{enumerate}
+\item{Synchronization of work-items in a work group: This is a barrier synchronization which ensures all the work-items execute the barrier before proceeding to execution beyond the barrier.}
+\item{Synchronization between commands enqueued in a command queue: This ensures that all the commands queued before the barrier have finished execution and the resulting memory is visible to the commands after the barrier before they begin execution.}
+\end{enumerate}
+
+\section{Parallel Apriori Algorithm}
+As mentioned before, $Apriori$ algorithm works in iterations. Each iteration is dependent on the results (new candidate items) of the previous iteration. Hence the iterations of the $Apriori$ algorithm cannot be parallelized. What we can parallelize is the computations done with in an iteration. In this paper, we focus on parallelizing the $count\_frequent\_items(candidate\_items)$ step of Algorithm~\ref{alg:apriori}. We developed Java fork/join and OpenCL kernels for counting. The $generate\_candidate\_items(frequent\_items,\ K)$ is done on CPU. The parallel $Apriori$ algorithm is depicted in Algorithm ~\ref{alg:papriori}. 
+
+\begin{algorithm}\caption{Parallel Apriori Algorithm}\label{alg:papriori}
+  \begin{algorithmic}[1]
+	\STATE \texttt{candidate\_items = items}
+	\STATE \texttt{K = 1}
+	\WHILE {candidate\_items != empty}
+	    \FORALL{candidate\_items in parallel} 
+	        \STATE \texttt{frequent\_items = count\_frequent\_items(candidate\_items, min\_support)}
+			\ENDFOR		 
+			\STATE \texttt{K = K + 1}
+	    \STATE \texttt {candidate\_items = generate\_candidate\_items(frequent\_items, K)}
+    \ENDWHILE
+  \end{algorithmic}
+\end{algorithm}
 
 \subsection{Parallelization issues}
+For parallelizing an algorithm on a multi-core architecture, we need to address the following issues:
 
-\subsection{Using prime number arithmetic}
+\subsection{Fork/Join implementation}
+The $Apriori$ implementation in Java begins with the creation of a boolean two dimensional array, called $marketBasket$, of items and transactions. An entry $marketBasket[i][j]=1$, indicates that the item $i$ is present in transaction $j$ and the value zero indicates that the item is not present in that specific transaction. A $frequentItems$ array list will hold all the frequent items, of length $0 to K$ after the program execution completes. 
+
+The program begins with the creation of a $ForkJoinPool$ object, which creates a worker thread pool to be utilized during parallel execution. The number of worker threads in the pool is equal to the number of CPU's present in the system. The next step is to obtain the candidates for the current iteration, and the function $generateCandidateSet()$ performs this task and stores all the candidate items in an arraylist, $candidates$. The program continues iteratively till the candidates $arraylist$ so generated is of size zero.
+
+During each iteration we loop through the $candidates$ arraylist and generate the count for the item stored in it. A $CountTask$ object, which extends the $ForkJoinTask$ class, and contains the counting logic, is created during each iteration of the loop. The $invoke()$ function causes the counting operation for that specific item, to begin. The $invoke()$ transfers the control to the $compute()$ function in $CountTask$ class, which splits the transaction array into $n$ parts, where $n$ is the number of processor cores, and assigns the task of counting the specific item occurrences in this sub-array, to each of the n available worker threads.  This is done by invoking the $forkJoin()$ function present in the $RecursiveActions$ class and passing an array of tasks(in this case new $CountTask$ objects, each containing a subset of the initial transaction array for the specific object) as a parameter. Thus the counting of the occurrences of a specific item is performed in parallel by distributing the tasks between each of the available CPU cores. At the end of an iteration, the count hashmap will contain an entry for each of the items in the previously generated candidate set and a corresponding count value associated with it. 
+We then loop through the count hashmap and remove all the items whose count is less than the user specified Support Count.  The resultant contents of the $count$ hashmap will be the frequent $K$ item set. The items are copied into the $frequentItems$ arraylist. These items are also copied into the $candidate$ arraylist and then used during the next iteration to generate the candidates for $K+1$ frequent items.
 
 
-\subsection{Using Bitmap}
+\subsection{OpenCL implementation using bitmap}
+We present the bitmap based implementation of the $Apriori$ algorithm. The motivation behind using a bitmap is to reduce the memory requirements of the $Apriori$ algorithm. The data set for Frequent Itemset Mining is expressed in market basket format shown in Figure~\ref{fig:marketbasket}. Market basket is a $transaction\ X\ items$ matrix. We transform this representation to a $item\ X\ transaction$ bitmap as shown in Figure~\ref{fig:bitmap}. Item $A$ is present in transactions $T1,\ T2,\ T4$, item $B$ in transactions $T1,\ T3,\ T4$ and so on. We refer this bitmap as transaction bitmap. 
+\begin{figure}[!t]
+\centering
+\includegraphics[width=1.5in]{marketbasket.eps}
+\caption{Market Basket}
+\label{fig:marketbasket}
+\end{figure}
+
+In each iteration, the transaction bitmap $tBitMap$ is copied to global memory of the device. We also keep a boolean array $isFrequent$ to keep track of the frequent items. i.e. $isFrequent[i] == true$ if $i^{th}$ candidate item set is frequent otherwise $false$. Once the kernel completes execution, the $isFrequent$  array is copied from device to the host. Listing~\ref{list:counting} shows the OpenCL kernel for counting frequent item sets.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=1.5in]{bitmap.eps}
+\caption{Bitmap Representation}
+\label{fig:bitmap}
+\end{figure}
+
+The transaction bitmap is partitioned among the the work-groups such that each work-group performs counting for a group of item set. The work-items in a work-group scans the transaction bitmap corresponding to an item set and updates (atomic) a counter in local memory. The atomic update is required in a particular time-frame, all the work-items in a work-group scan the transaction bitmap corresponding to an item set. Currently we use a single integer element in the local memory. All the work-items perform atomic update of this element. This results in contention. One solution is to keep an array in local memory such that a group of work-items update a particular location. Then we perform a parallel reduce on this array to get the count. The count is then compared with the support value and the result is set in the $isFrequent$ array. Since the candidate item sets mapped to each work-group are independent, we do not need an atomic update in the global memory.
+
+Another advantage of bitmap representation is efficient counting using bitwise operators. Work-items read the transactions corresponding to a candidate item set as an unsigned integer ($32$ bit) from the bitmap. This read from global memory is performed in coalesced pattern. We split the $32$ bit unsigned integer into two 16 bit unsigned integers. As shown in Figure~\ref{fig:lookup}, we maintain a look up table in the device constant memory that stores the number of $1's$ in $16$ bit unsigned integers. The look up table has $2^{16}$ one byte entires ($64$KB) which will fit into the constant memory of an OpenCL device.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2in]{lookuptable.eps}
+\caption{16 bit look up table}
+\label{fig:lookup}
+\end{figure}
+
+
+\begin{lstlisting}[caption={OpenCL Kernel for counting frequent item sets}, label=list:counting]
+// lookup array in constant memory
+// tBitMap array in global memory
+// sCount in shared memory
+// WIPWG - Work-items per work-group
+// DPWI - Data per work-item
+// IPWG - Items per work-group
+// tx - work-item id
+for (uint k = 0; k < IPWG; ++k) 
+{
+   uint count = 0;
+   for (uint i = 0; i < DPWI; ++i) 
+	 {	
+       uint index = start + (i * WIPWG) + tx;
+       uint val = (tBitMap[index]);
+       ushort upval = (val & 0xffff0000) >> 16;
+       ushort lowval = val & 0x0000ffff;
+       count += lookup[upval] + lookup[lowval];
+   }
+   if (count)
+      atom_add(sCount, count);
+   barrier(CLK_LOCAL_MEM_FENCE);
+   if (tx == 0) 
+	 {	
+      if (*sCount > support) 
+		     isFrequent[start + k] = 1;
+      *sCount = 0; 
+   }
+   barrier(CLK_LOCAL_MEM_FENCE);
+}
+\end{lstlisting}
+
+The candidate generation step is done on CPU. In $Apriori$ algorithm a $K$ item set is a candidate if all the $K-1$ subsets are frequent. For efficient implementation, we use a trie data structure. A trie is created for the item sets. A trie is a directed prefix tree. Each node in the tree stores an item id.
+A node at depth $K$, prefixing the path from root to the node represents a K item set. The nodes also store the indexes to the $isFrequent$ array to get the frequency. The index also points to the corresponding entry of the item set in the transaction bitmap. We generate the candidate item sets by traversing the trie. i.e. to generate $K$ item set from $K - 1$ item set, we traverse the trie till we reach the leaf node at level $K - 1$. Each item in the lead is joined with its right sibling to form a $K$ item set. The children of a node are kept in lexicographical sorted order on item id which ensures joining with right sibling generates a $K$ item set. Then we check if all the (K-1) item sets of this K item are frequent by traversing the trie. If its a candidate K-item set, the sibling is added as the child of the leaf node. A logical AND operation is performed between the corresponding entires in the transaction bitmap of the two items. This generation the K-transaction bitmap used for counting in next iteration.
+
+Figure~\ref{fig:trie} shows generating $3$ item set from $2$ item set. The two item sets $AB$ and $AC$ are joined to form the three item set $ABC$. We do  logical AND operation of entries corresponding to $AB$ and $AC$ in the transaction bitmap to form the new transaction bitmap with entry $ABC$.
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=3in]{trie.eps}
+\caption{Generating 3 item set from 2 item set using trie}
+\label{fig:trie}
+\end{figure}
+
 
 \section{Experimental Results}
+\subsection{Benchmark Machine}
 
 \section{Conclusion}
 
@@ -473,10 +677,10 @@ The abstract goes here.
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
 \begin{thebibliography}{1}
-
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+\bibitem{bib:bitmap}
+Wenbin Fang, Mian Lu, Xiangye Xiao, et.al., \emph{Frequent Itemset Mining on Graphics Processors}, 5th International Workshop on Data Management on New Hardware, June 2009.
+\bibitem{bib:assocAlgos}
+Rakesh Agrawal and Ramakrishnan Srikant, \emph{Fast algorithms for mining association rules}, VLDB, 1994.
 
 \end{thebibliography}
 
