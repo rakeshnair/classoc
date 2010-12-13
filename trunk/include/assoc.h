@@ -6,6 +6,7 @@
 #define SIZE  1048576
 #define NO_DIV_PRIME 4
 
+
 void fileRead(const char* file);
 void fileReadBitmap(const char* file);
 void gpuAssoc(const char* file);
@@ -17,7 +18,7 @@ void verifyItemSet(bool* count, const unsigned e);
 void createTwoItemSet(const int* count);
 void createItemBitmap();
 bool generateKItemSet(const bool* count);
-
+void performAnd(const unsigned i, const unsigned j);
 
 typedef unsigned char uchar;
 extern uchar* bitLookup; 

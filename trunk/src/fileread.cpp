@@ -49,7 +49,7 @@ fileRead(const char* file)
     fp.close();
     fp.open(file, ios::in); 
 
-    marketBasket = (bool*)allocateHostMemory(sizeof(bool) * nItems * nTransactions);
+    marketBasket = (bool*)malloc(sizeof(bool) * nItems * nTransactions);
     unsigned tTrans = 0;
     while(!fp.eof()) {
        string line;
