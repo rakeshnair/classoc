@@ -55,6 +55,7 @@
 \usepackage[dvips]{graphicx}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{url}
 % graphicx was written by David Carlisle and Sebastian Rahtz. It is
 % required if you want graphics, photos, etc. graphicx.sty is already
 % installed on most LaTeX systems. The latest version and documentation can
@@ -100,7 +101,7 @@
 
 \lstset{ %
 language=C++,                % choose the language of the code
-basicstyle=\small,       % the size of the fonts that are used for the code
+basicstyle=\tiny,       % the size of the fonts that are used for the code
 %numbers=left,                   % where to put the line-numbers
 numberstyle=\tiny,      % the size of the fonts that are used for the line-numbers
 keywordstyle=\color{black}\bfseries,
@@ -360,9 +361,10 @@ The abstract goes here.
 
 
 \subsection{Related Work}
+There have been studies in the past focussing on frequent itemset mining and various approaches to quicken the process on GPU.The work of Govindraju, Manocha et al.[] on stream mining of quantiles and frequencies on GPUs deal with sorting that forms a computationally intensive part of the algorithm to find frequencies.Their approach uses the color blending and texture mapping capabilities of the GPU for performing the comparison operations and comparitor mapping.Two implementations of the Apriori algorithm on GPU was done by Fang, Lu et al.[].They proposed a novel method of representing the transactions in the form of bitmaps.The bitmaps can be efficiently partioned into the SIMD processorsThey also put forward a method to efficiently perform time consuming operation of counting by implementing lookup.Another implementation they proposed involves representing itemsets as a trie structure to facilitate quick traversal.An intelligent approach of combining top-down and bottom up searches to expedite the search was put forward by Sivanandam, et al [] 
 
 \subsection{Java Fork/join framework}
-Fork/Join is a lightweight task framework included in $JSR166y$ and introduced as part of the Java 7 platform. The Fork/Join framework aims at providing a support for parallel programming by way of splitting a task into smaller tasks, which are performed in parallel, waiting for these tasks to complete and then composing the final result out of the intermediate results.
+Fork/Join~\cite{bib:java} is a lightweight task framework included in $JSR166y$~\cite{bib:jsr}, introduced as part of the Java 7~\cite{bib:jdk7} platform. The Fork/Join framework aims at providing a support for parallel programming by way of splitting a task into smaller tasks, which are performed in parallel, waiting for these tasks to complete and then composing the final result out of the intermediate results.
 
 Fork/Join employs a simple and highly efficient design technique for obtaining good parallel performance. The algorithms employing Fork/Join are very similar to the familiar divide-and-conquer algorithms. Listing~\ref{list:forkjoin} shows typical Fork/Join algorithm. 
 
@@ -405,7 +407,7 @@ The Fork/Join framework can be implemented in a number of ways. The use of raw t
 
 \subsection{ OpenCL device architecture} \label{sec:gpuArch}
 
-In this paper, we use GPUs and multi core CPUs as OpenCL devices. GPU is a dedicated computing device to address problems that have high arithmetic intensity i.e. high ratio of arithmetic operations to memory operations. Each of the GPU cores has a SIMT (Single Instruction Multiple Thread) architecture. The core of a GPU has a small cache and limited flow of control - both of these take up most of the transistors in a CPU whereas in a GPU, more transistors are used up for computing cores.
+In this paper, we use GPUs and multi core CPUs as OpenCL~\cite{bib:ocl} devices. GPU is a dedicated computing device to address problems that have high arithmetic intensity i.e. high ratio of arithmetic operations to memory operations. Each of the GPU cores has a SIMT (Single Instruction Multiple Thread) architecture. The core of a GPU has a small cache and limited flow of control - both of these take up most of the transistors in a CPU whereas in a GPU, more transistors are used up for computing cores.
 
 Parallel portions of an application are expressed as device kernels which run on many threads. GPU threads are extremely lightweight and the creation overhead is very little. The scheduling is done by the hardware unlike the operating system in a CPU. A typical GPU needs hundreds of threads for full utilization of hardware where as CPU can be saturated with only a few threads.
 
@@ -560,9 +562,15 @@ Figure~\ref{fig:trie} shows generating $3$ item set from $2$ item set. The two i
 
 
 \section{Experimental Results}
+\subsection{Data sets}
+We used two data sets, $chess$ and $mushroom$ from Frequent Itemset Mining Dataset Repository (FIMI)~\cite{bib:fimi} to evaluate our $Apriori$ implementations. 
 \subsection{Benchmark Machine}
-
-\section{Conclusion}
+We conducted our experiments on two different hardware configurations. All the machines run on $64bit$ Linux operating system. The OpenCL source code is compiled using $g++$ compiler.
+\begin{enumerate}
+\item{The machine with an NVIDIA FERMI Generation GeForce GTX 480 GPU clocked at $1.4GHz$. The GPU has $1.6	GB$ global memory and $48 KB$ local memory. It has $15$ compute units and each compute unit has $32$ processing elements resulting in a total of $480$ processor cores. The machine has a quad core Intel Xeon Processor clocked at $2.8GHz$ with $12GB$ RAM.}
+\item{The machine with $8$ quad core AMD Opteron processors clocked at $3.6GHtz$ and 100GB RAM.}
+\end{enumerate} 
+\section{Conclusion and future work}
 
 
 % An example of a floating figure using the graphicx package.
@@ -681,6 +689,16 @@ Figure~\ref{fig:trie} shows generating $3$ item set from $2$ item set. The two i
 Wenbin Fang, Mian Lu, Xiangye Xiao, et.al., \emph{Frequent Itemset Mining on Graphics Processors}, 5th International Workshop on Data Management on New Hardware, June 2009.
 \bibitem{bib:assocAlgos}
 Rakesh Agrawal and Ramakrishnan Srikant, \emph{Fast algorithms for mining association rules}, VLDB, 1994.
+\bibitem{bib:fimi}
+http://fimi.cs.helsinki.fi, \emph{FIMI repository}
+\bibitem{bib:ocl}
+http://www.khronos.org/opencl, \emph{OpenCL 1.1 Specification}
+\bibitem{bib:java}
+Doug Lea, \emph{A Java Fork/Join Framework}
+\bibitem{bib:jsr}
+http://gee.cs.oswego.edu/dl/jsr166/dist/jsr166ydocs/, \emph{Concurrency JSR-166 Interest Site}, Doug Lea
+\bibitem{bib:jdk7}
+https://jdk7.dev.java.net/, \emph{Java 7}
 
 \end{thebibliography}
 
